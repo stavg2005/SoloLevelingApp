@@ -1,17 +1,12 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// In App.tsx, add a component that fetches from your API
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useEffect, useState,type PropsWithChildren} from 'react';
 import {
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
@@ -56,20 +51,29 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const [serverMessage, setServerMessage] = useState('Loading...');
+
+  const fetchFromServer = async () => {
+    try {
+      // Use your machine's IP address instead of localhost when testing on a physical device
+      const response = await fetch('http://10.0.2.2:3000/api/hello'); // 10.0.2.2 points to your computer's localhost from Android emulator
+      const data = await response.json();
+      setServerMessage(data.message);
+    } catch (error) {
+      console.error('Error fetching from server:', error);
+      setServerMessage('Failed to connect to server');
+    }
+  };
+
+  useEffect(() => {
+    // Uncomment this to automatically fetch when the app loads
+    // fetchFromServer();
+  }, []);
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
   const safePadding = '5%';
 
   return (
@@ -78,10 +82,9 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView
-        style={backgroundStyle}>
+      <ScrollView style={backgroundStyle}>
         <View style={{paddingRight: safePadding}}>
-          <Header/>
+          <Header />
         </View>
         <View
           style={{
@@ -89,6 +92,13 @@ function App(): React.JSX.Element {
             paddingHorizontal: safePadding,
             paddingBottom: safePadding,
           }}>
+          <Section title="Connect to Node.js Server">
+            <TouchableOpacity onPress={fetchFromServer} style={styles.button}>
+              <Text style={styles.buttonText}>Fetch from Server</Text>
+            </TouchableOpacity>
+            <Text style={styles.serverResponse}>{serverMessage}</Text>
+          </Section>
+
           <Section title="Step One">
             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
             screen and then come back to see your edits.
@@ -125,6 +135,23 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  button: {
+    backgroundColor: '#4f6d7a',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  serverResponse: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
   },
 });
 
