@@ -1,34 +1,38 @@
 // src/navigation/AppNavigator.js
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {View, Text, StyleSheet} from 'react-native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 // Import screens
 import StatusScreen from '../screens/StatusScreen';
 import DungeonScreen from '../screens/DungeonScreen';
-
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 // Placeholder components for screens we haven't created yet
-
 
 const HomeScreen = () => (
   <View style={styles.placeholder}>
     <Text style={styles.placeholderText}>Home Screen</Text>
-    <Text style={styles.placeholderSubtext}>Your daily progress will appear here</Text>
+    <Text style={styles.placeholderSubtext}>
+      Your daily progress will appear here
+    </Text>
   </View>
 );
 
 const SkillsScreen = () => (
   <View style={styles.placeholder}>
     <Text style={styles.placeholderText}>Skills Screen</Text>
-    <Text style={styles.placeholderSubtext}>Your skills and achievements will appear here</Text>
+    <Text style={styles.placeholderSubtext}>
+      Your skills and achievements will appear here
+    </Text>
   </View>
 );
 
 const Tab = createBottomTabNavigator();
 
-const TabIcon = ({ name, focused }) => {
+const TabIcon = ({name, focused}) => {
   let icon = '🏠';
-  
+
   switch (name) {
     case 'Home':
       icon = '🏠';
@@ -43,16 +47,12 @@ const TabIcon = ({ name, focused }) => {
       icon = '📊';
       break;
   }
-  
+
   return (
-    <View style={[
-      styles.tabIcon,
-      focused && styles.tabIconActive
-    ]}>
-      <Text style={[
-        styles.tabIconText,
-        focused && styles.tabIconTextActive
-      ]}>{icon}</Text>
+    <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+      <Text style={[styles.tabIconText, focused && styles.tabIconTextActive]}>
+        {icon}
+      </Text>
     </View>
   );
 };
@@ -60,19 +60,19 @@ const TabIcon = ({ name, focused }) => {
 const AppNavigator = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={({route}) => ({
         headerShown: false,
         tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
-        tabBarIcon: ({ focused }) => (
+        // eslint-disable-next-line react/no-unstable-nested-components
+        tabBarIcon: ({focused}) => (
           <TabIcon name={route.name} focused={focused} />
         ),
-      })}
-    >
+      })}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Dungeons" component={DungeonScreen} />
       <Tab.Screen name="Status" component={StatusScreen} />
-      <Tab.Screen name="Skills" component={SkillsScreen} />
+      <Tab.Screen name="Skills" component={LoginScreen} />
     </Tab.Navigator>
   );
 };
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     height: 60,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#38BDF8',
     shadowColor: '#38BDF8',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 3,

@@ -23,61 +23,61 @@ const DungeonScreen = ({ navigation }) => {
   const [dungeons, setDungeons] = useState({
     daily: [
       { 
-        id: 1, 
-        title: 'Cardio Gate', 
+        id: 1,
+        title: 'Cardio Gate',
         type: 'E-Rank',
         duration: '15-30 min',
         description: 'Complete 20 min of any cardio exercise to clear this dungeon.',
         iconType: 'cardio',
-        status: 'available' 
+        status: 'available'
       },
-      { 
-        id: 2, 
-        title: 'Stretching Vault', 
+      {
+        id: 2,
+        title: 'Stretching Vault',
         type: 'E-Rank',
         duration: '10 min',
         description: 'Morning stretches to improve flexibility and prepare for the day.',
         iconType: 'stretch',
-        status: 'cleared' 
+        status: 'cleared'
       },
-      { 
-        id: 3, 
-        title: 'Strength Temple', 
+      {
+        id: 3,
+        title: 'Strength Temple',
         type: 'D-Rank',
         duration: '20 min',
         description: 'Requires Hunter Rank D to unlock this advanced strength training.',
         iconType: 'strength',
-        status: 'locked' 
+        status: 'locked'
       },
     ],
     weekly: [
-      { 
-        id: 4, 
-        title: 'Endurance Trial', 
+      {
+        id: 4,
+        title: 'Endurance Trial',
         type: 'D-Rank',
         duration: '45 min',
         description: 'A challenging weekly dungeon with high endurance requirements.',
         iconType: 'endurance',
-        status: 'available' 
+        status: 'available'
       },
     ],
     special: [
-      { 
+      {
         id: 5, 
-        title: 'Double Dungeon', 
+        title: 'Double Dungeon',
         type: 'C-Rank',
         duration: '60 min',
         description: 'A rare special dungeon that requires partner assistance. High rewards!',
         iconType: 'double',
-        status: 'locked' 
+        status: 'locked',
       },
     ],
   });
-  
+
   // Memoize the showSystemMessage function
   const showSystemMessage = useCallback((message) => {
     setSystemMessage(message);
-    
+
     // Animate in
     Animated.sequence([
       Animated.timing(fadeAnim, {
@@ -100,7 +100,7 @@ const DungeonScreen = ({ navigation }) => {
       showSystemMessage(`You need to reach ${dungeon.type} to unlock this dungeon.`);
       return;
     } else if (dungeon.status === 'cleared') {
-      showSystemMessage(`You've already cleared this dungeon today.`);
+      showSystemMessage('You\'ve already cleared this dungeon today.');
       return;
     }
     
@@ -117,7 +117,7 @@ const DungeonScreen = ({ navigation }) => {
   // Welcome message when screen loads
   useEffect(() => {
     const timer = setTimeout(() => {
-      showSystemMessage("Available dungeons detected!");
+      showSystemMessage('Available dungeons detected!');
     }, 1000);
     
     return () => clearTimeout(timer);
@@ -128,11 +128,11 @@ const DungeonScreen = ({ navigation }) => {
     // Default styles
     const containerStyle = [
       styles.dungeonIconContainer,
-      status === 'locked' && styles.dungeonIconContainerLocked
+      status === 'locked' && styles.dungeonIconContainerLocked,
     ];
-    
+
     const iconColor = status === 'locked' ? '#4B5563' : '#38BDF8';
-    
+
     // Render different icons based on type
     let iconContent;
     switch (type) {
@@ -194,7 +194,7 @@ const DungeonScreen = ({ navigation }) => {
           </View>
         );
     }
-    
+
     return iconContent;
   };
 
@@ -212,7 +212,7 @@ const DungeonScreen = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>DUNGEONS</Text>
-            
+
             {/* User Level & Portal Key Info */}
             <View style={styles.userInfoContainer}>
               <View style={styles.userInfoContent}>
@@ -234,7 +234,7 @@ const DungeonScreen = ({ navigation }) => {
             >
               <Text style={[styles.tabText, activeTab === 'daily' && styles.activeTabText]}>DAILY</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity 
               style={[styles.tab, activeTab === 'weekly' && styles.activeTab]}
               onPress={() => switchTab('weekly')}
@@ -242,7 +242,7 @@ const DungeonScreen = ({ navigation }) => {
             >
               <Text style={[styles.tabText, activeTab === 'weekly' && styles.activeTabText]}>WEEKLY</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity 
               style={[styles.tab, activeTab === 'special' && styles.activeTab]}
               onPress={() => switchTab('special')}
@@ -265,7 +265,7 @@ const DungeonScreen = ({ navigation }) => {
               <View style={styles.dungeonIconSection}>
                 <DungeonIcon type={dungeon.iconType} status={dungeon.status} />
               </View>
-              
+
               {/* Dungeon Info Section */}
               <View style={styles.dungeonInfoSection}>
                 <Text style={[
@@ -274,23 +274,23 @@ const DungeonScreen = ({ navigation }) => {
                 ]}>
                   {dungeon.title}
                 </Text>
-                
+
                 <Text style={[
                   styles.dungeonMeta,
                   dungeon.status === 'locked' && styles.dungeonMetaLocked
                 ]}>
                   {dungeon.duration} • {dungeon.type}
                 </Text>
-                
+
                 <View style={styles.dungeonDivider} />
-                
+
                 <Text style={[
                   styles.dungeonDescription,
                   dungeon.status === 'locked' && styles.dungeonDescriptionLocked
                 ]}>
                   {dungeon.description}
                 </Text>
-                
+
                 {/* Action button */}
                 <TouchableOpacity 
                   style={[
