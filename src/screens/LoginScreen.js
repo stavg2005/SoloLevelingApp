@@ -1,7 +1,5 @@
 // src/screens/LoginScreen.js
-
-import React, {useState, useEffect} from 'react';
-
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -14,8 +12,10 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator, // Add this for loading state
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {userApi} from '../services/userApi';
 
 const LoginScreen = ({navigation}) => {
   // State declarations
@@ -24,56 +24,63 @@ const LoginScreen = ({navigation}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [systemMessage, setSystemMessage] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [loading, setLoading] = useState(false);
 
   // Show system message with animation
-  const showSystemMessage = message => {
-    setSystemMessage(message);
+  const showSystemMessage = useCallback(
+    message => {
+      setSystemMessage(message);
 
-    // Animate in
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.delay(2000),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => setSystemMessage(null));
-  };
+      // Animate in
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.delay(2000),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setSystemMessage(null));
+    },
+    [fadeAnim],
+  );
 
   // Handle login
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!username || !password) {
       showSystemMessage('Please enter both username and password');
       return;
     }
 
-    // Here you would typically handle authentication
-    // For now, we'll just show a success message
+    setLoading(true);
     showSystemMessage('Logging in...');
 
-    // Simulate a login delay
-    setTimeout(() => {
-      // Navigate to main app (replace with your actual navigation logic)
-      // navigation.replace('MainApp');
+    try {
+      // Call the API
+      const userData = await userApi.login({username, password});
 
-      // For testing purposes only:
       showSystemMessage('Login successful!');
-    }, 1500);
+      navigation.replace('MainApp');
+    } catch (error) {
+      console.error('Login error:', error);
+      showSystemMessage('Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Welcome message when screen loads
+  // Welcome message when screen loads - add dependency array to run only once
   useEffect(() => {
     const timer = setTimeout(() => {
       showSystemMessage('Welcome, Hunter! Please login.');
     }, 1000);
 
     return () => clearTimeout(timer);
-  });
+  }, [showSystemMessage]); // Empty dependency array makes it run only once on mount
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -82,8 +89,7 @@ const LoginScreen = ({navigation}) => {
 
   // Navigate to registration screen
   const navigateToRegister = () => {
-    // navigation.navigate('Register');
-    showSystemMessage('Navigating to registration...');
+    navigation.navigate('Register');
   };
 
   // Handle forgot password
@@ -157,10 +163,18 @@ const LoginScreen = ({navigation}) => {
 
             {/* Login Button */}
             <TouchableOpacity
-              style={styles.loginButton}
+              style={[
+                styles.loginButton,
+                loading && styles.loginButtonDisabled,
+              ]}
               onPress={handleLogin}
+              disabled={loading}
               activeOpacity={0.8}>
-              <Text style={styles.loginButtonText}>LOGIN</Text>
+              {loading ? (
+                <ActivityIndicator color="#192130" size="small" />
+              ) : (
+                <Text style={styles.loginButtonText}>LOGIN</Text>
+              )}
             </TouchableOpacity>
 
             {/* Forgot Password */}

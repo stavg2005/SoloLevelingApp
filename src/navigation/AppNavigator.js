@@ -69,7 +69,7 @@ const AppNavigator = () => {
           <TabIcon name={route.name} focused={focused} />
         ),
       })}>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={RegisterScreen} />
       <Tab.Screen name="Dungeons" component={DungeonScreen} />
       <Tab.Screen name="Status" component={StatusScreen} />
       <Tab.Screen name="Skills" component={LoginScreen} />
