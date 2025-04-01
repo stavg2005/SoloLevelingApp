@@ -18,18 +18,18 @@ const DungeonScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('daily');
   const [systemMessage, setSystemMessage] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
-  
+
   // Dungeon data for each tab
   const [dungeons, setDungeons] = useState({
     daily: [
-      { 
+      {
         id: 1,
         title: 'Cardio Gate',
         type: 'E-Rank',
         duration: '15-30 min',
         description: 'Complete 20 min of any cardio exercise to clear this dungeon.',
         iconType: 'cardio',
-        status: 'available'
+        status: 'available',
       },
       {
         id: 2,
@@ -38,7 +38,7 @@ const DungeonScreen = ({ navigation }) => {
         duration: '10 min',
         description: 'Morning stretches to improve flexibility and prepare for the day.',
         iconType: 'stretch',
-        status: 'cleared'
+        status: 'cleared',
       },
       {
         id: 3,
@@ -47,7 +47,7 @@ const DungeonScreen = ({ navigation }) => {
         duration: '20 min',
         description: 'Requires Hunter Rank D to unlock this advanced strength training.',
         iconType: 'strength',
-        status: 'locked'
+        status: 'locked',
       },
     ],
     weekly: [
@@ -58,12 +58,12 @@ const DungeonScreen = ({ navigation }) => {
         duration: '45 min',
         description: 'A challenging weekly dungeon with high endurance requirements.',
         iconType: 'endurance',
-        status: 'available'
+        status: 'available',
       },
     ],
     special: [
       {
-        id: 5, 
+        id: 5,
         title: 'Double Dungeon',
         type: 'C-Rank',
         duration: '60 min',
@@ -103,7 +103,7 @@ const DungeonScreen = ({ navigation }) => {
       showSystemMessage('You\'ve already cleared this dungeon today.');
       return;
     }
-    
+
     showSystemMessage(`Entering ${dungeon.title}...`);
     // In a real app, you would navigate to the workout screen here
     // navigation.navigate('WorkoutSession', { dungeon });
@@ -119,7 +119,7 @@ const DungeonScreen = ({ navigation }) => {
     const timer = setTimeout(() => {
       showSystemMessage('Available dungeons detected!');
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, [showSystemMessage]);
 
@@ -227,7 +227,7 @@ const DungeonScreen = ({ navigation }) => {
 
           {/* Tabs */}
           <View style={styles.tabsContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
               onPress={() => switchTab('daily')}
               activeOpacity={0.7}
@@ -235,7 +235,7 @@ const DungeonScreen = ({ navigation }) => {
               <Text style={[styles.tabText, activeTab === 'daily' && styles.activeTabText]}>DAILY</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.tab, activeTab === 'weekly' && styles.activeTab]}
               onPress={() => switchTab('weekly')}
               activeOpacity={0.7}
@@ -243,7 +243,7 @@ const DungeonScreen = ({ navigation }) => {
               <Text style={[styles.tabText, activeTab === 'weekly' && styles.activeTabText]}>WEEKLY</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.tab, activeTab === 'special' && styles.activeTab]}
               onPress={() => switchTab('special')}
               activeOpacity={0.7}
@@ -254,11 +254,11 @@ const DungeonScreen = ({ navigation }) => {
 
           {/* Dungeon Cards */}
           {dungeons[activeTab] && dungeons[activeTab].map((dungeon) => (
-            <View 
-              key={dungeon.id} 
+            <View
+              key={dungeon.id}
               style={[
                 styles.dungeonCard,
-                dungeon.status === 'locked' && styles.dungeonCardLocked
+                dungeon.status === 'locked' && styles.dungeonCardLocked,
               ]}
             >
               {/* Dungeon Icon Section */}
@@ -270,14 +270,14 @@ const DungeonScreen = ({ navigation }) => {
               <View style={styles.dungeonInfoSection}>
                 <Text style={[
                   styles.dungeonTitle,
-                  dungeon.status === 'locked' && styles.dungeonTitleLocked
+                  dungeon.status === 'locked' && styles.dungeonTitleLocked,
                 ]}>
                   {dungeon.title}
                 </Text>
 
                 <Text style={[
                   styles.dungeonMeta,
-                  dungeon.status === 'locked' && styles.dungeonMetaLocked
+                  dungeon.status === 'locked' && styles.dungeonMetaLocked,
                 ]}>
                   {dungeon.duration} • {dungeon.type}
                 </Text>
@@ -286,13 +286,13 @@ const DungeonScreen = ({ navigation }) => {
 
                 <Text style={[
                   styles.dungeonDescription,
-                  dungeon.status === 'locked' && styles.dungeonDescriptionLocked
+                  dungeon.status === 'locked' && styles.dungeonDescriptionLocked,
                 ]}>
                   {dungeon.description}
                 </Text>
 
                 {/* Action button */}
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
                     styles.dungeonButton,
                     dungeon.status === 'cleared' && styles.dungeonButtonCleared,
@@ -303,9 +303,9 @@ const DungeonScreen = ({ navigation }) => {
                 >
                   <Text style={[
                     styles.dungeonButtonText,
-                    dungeon.status === 'locked' && styles.dungeonButtonTextLocked
+                    dungeon.status === 'locked' && styles.dungeonButtonTextLocked,
                   ]}>
-                    {dungeon.status === 'available' ? 'ENTER' : 
+                    {dungeon.status === 'available' ? 'ENTER' :
                      dungeon.status === 'cleared' ? 'CLEARED' : 'LOCKED'}
                   </Text>
                 </TouchableOpacity>

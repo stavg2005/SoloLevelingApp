@@ -6,24 +6,14 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 // Import screens
 import StatusScreen from '../screens/StatusScreen';
 import DungeonScreen from '../screens/DungeonScreen';
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-// Placeholder components for screens we haven't created yet
+import ProfileScreen from '../screens/ProfileScreen';
 
+// Placeholder component for Home screen we haven't created yet
 const HomeScreen = () => (
   <View style={styles.placeholder}>
     <Text style={styles.placeholderText}>Home Screen</Text>
     <Text style={styles.placeholderSubtext}>
       Your daily progress will appear here
-    </Text>
-  </View>
-);
-
-const SkillsScreen = () => (
-  <View style={styles.placeholder}>
-    <Text style={styles.placeholderText}>Skills Screen</Text>
-    <Text style={styles.placeholderSubtext}>
-      Your skills and achievements will appear here
     </Text>
   </View>
 );
@@ -43,8 +33,8 @@ const TabIcon = ({name, focused}) => {
     case 'Status':
       icon = '👤';
       break;
-    case 'Skills':
-      icon = '📊';
+    case 'Profile':
+      icon = '⚙️';
       break;
   }
 
@@ -69,10 +59,10 @@ const AppNavigator = () => {
           <TabIcon name={route.name} focused={focused} />
         ),
       })}>
-      <Tab.Screen name="Home" component={RegisterScreen} />
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Dungeons" component={DungeonScreen} />
       <Tab.Screen name="Status" component={StatusScreen} />
-      <Tab.Screen name="Skills" component={LoginScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 };

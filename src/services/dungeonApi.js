@@ -6,14 +6,14 @@ export const dungeonApi = {
   getAvailableDungeons(userId) {
     return apiClient.get(`/dungeons/available/${userId}`);
   },
-  
+
   // Complete dungeon
   completeDungeon(completionData) {
     return apiClient.post('/dungeons/complete', completionData);
   },
-  
+
   // Get dungeon details
   getDungeonDetails(dungeonId) {
     return apiClient.get(`/dungeons/details/${dungeonId}`);
-  }
+  },
 };

@@ -12,10 +12,10 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator, // Add this for loading state
+  ActivityIndicator,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {userApi} from '../services/userApi';
+import {useAuth} from '../context/AuthContext';
 
 const LoginScreen = ({navigation}) => {
   // State declarations
@@ -24,7 +24,9 @@ const LoginScreen = ({navigation}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [systemMessage, setSystemMessage] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
-  const [loading, setLoading] = useState(false);
+
+  // Get auth context
+  const {login, isLoading, error} = useAuth();
 
   // Show system message with animation
   const showSystemMessage = useCallback(
@@ -56,31 +58,31 @@ const LoginScreen = ({navigation}) => {
       return;
     }
 
-    setLoading(true);
-    showSystemMessage('Logging in...');
-
     try {
-      // Call the API
-      const userData = await userApi.login({username, password});
-
-      showSystemMessage('Login successful!');
-      navigation.replace('MainApp');
-    } catch (error) {
-      console.error('Login error:', error);
-      showSystemMessage('Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
+      showSystemMessage('Logging in...');
+      await login(username, password);
+      // No need to navigate here - RootNavigator will handle it automatically
+    } catch (err) {
+      console.error('Login error:', err);
+      showSystemMessage(err.message || 'Login failed. Please check your credentials.');
     }
   };
 
-  // Welcome message when screen loads - add dependency array to run only once
+  // Show error from auth context if it exists
+  useEffect(() => {
+    if (error) {
+      showSystemMessage(error);
+    }
+  }, [error, showSystemMessage]);
+
+  // Welcome message when screen loads
   useEffect(() => {
     const timer = setTimeout(() => {
       showSystemMessage('Welcome, Hunter! Please login.');
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [showSystemMessage]); // Empty dependency array makes it run only once on mount
+  }, [showSystemMessage]);
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -117,10 +119,9 @@ const LoginScreen = ({navigation}) => {
 
           {/* Logo & App Title */}
           <View style={styles.logoContainer}>
-            <Image
-              source={require('../utils/Logo.png')}
-              style={styles.logoImage}
-            />
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoText}>SL</Text>
+            </View>
             <Text style={styles.appTitle}>SOLO LEVELING</Text>
             <Text style={styles.appSubtitle}>FITNESS APP</Text>
           </View>
@@ -136,6 +137,7 @@ const LoginScreen = ({navigation}) => {
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
 
@@ -149,10 +151,12 @@ const LoginScreen = ({navigation}) => {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
+                editable={!isLoading}
               />
               <TouchableOpacity
                 style={styles.eyeButton}
-                onPress={togglePasswordVisibility}>
+                onPress={togglePasswordVisibility}
+                disabled={isLoading}>
                 <View style={styles.eyeIconContainer}>
                   <Text style={styles.eyeIcon}>
                     {showPassword ? '👁️' : '👁️‍🗨️'}
@@ -165,12 +169,12 @@ const LoginScreen = ({navigation}) => {
             <TouchableOpacity
               style={[
                 styles.loginButton,
-                loading && styles.loginButtonDisabled,
+                isLoading && styles.loginButtonDisabled,
               ]}
               onPress={handleLogin}
-              disabled={loading}
+              disabled={isLoading}
               activeOpacity={0.8}>
-              {loading ? (
+              {isLoading ? (
                 <ActivityIndicator color="#192130" size="small" />
               ) : (
                 <Text style={styles.loginButtonText}>LOGIN</Text>
@@ -180,7 +184,8 @@ const LoginScreen = ({navigation}) => {
             {/* Forgot Password */}
             <TouchableOpacity
               style={styles.forgotPasswordButton}
-              onPress={handleForgotPassword}>
+              onPress={handleForgotPassword}
+              disabled={isLoading}>
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
@@ -196,6 +201,7 @@ const LoginScreen = ({navigation}) => {
             <TouchableOpacity
               style={styles.registerButton}
               onPress={navigateToRegister}
+              disabled={isLoading}
               activeOpacity={0.8}>
               <Text style={styles.registerButtonText}>REGISTER</Text>
             </TouchableOpacity>
@@ -210,11 +216,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#161B22',
-  },
-  logoImage: {
-    width: 120, // Adjust size as needed
-    height: 120, // Adjust size as needed
-    marginBottom: 20,
   },
   safeArea: {
     flex: 1,
@@ -329,6 +330,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
+  },
+  loginButtonDisabled: {
+    opacity: 0.7,
   },
   loginButtonText: {
     color: '#192130',

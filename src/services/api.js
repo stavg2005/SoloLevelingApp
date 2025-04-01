@@ -1,6 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
-import { authService } from './authService';
+import {authService} from './authService';
+
 // Base URL for all API calls
 const API_URL = 'http://10.0.0.9:3000/api'; // For Android emulator
 
@@ -13,14 +14,17 @@ const apiClient = axios.create({
   timeout: 10000, // 10 seconds
 });
 
-// Add request interceptor for authorization headers, etc.
+// Add request interceptor for authorization headers
 apiClient.interceptors.request.use(
-  config => {
-    // You can add auth token here
-    // const token = getTokenFromStorage();
-    // if (token) {
-    //   config.headers['Authorization'] = `Bearer ${token}`;
-    // }
+  async config => {
+    // Get token from storage
+    const token = await authService.getToken();
+
+    // If token exists, add it to the headers
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
   error => {
@@ -33,7 +37,7 @@ apiClient.interceptors.response.use(
   response => {
     return response.data;
   },
-  error => {
+  async error => {
     // Handle different error statuses
     if (error.response) {
       // The request was made and server responded with an error status
@@ -41,8 +45,9 @@ apiClient.interceptors.response.use(
 
       // Handle authentication errors
       if (error.response.status === 401) {
-        // Handle unauthorized access
-        // logout user, redirect to login, etc.
+        // Token is expired or invalid
+        // Clear stored credentials to force re-login
+        await authService.logout();
       }
     } else if (error.request) {
       // The request was made but no response was received
@@ -56,13 +61,4 @@ apiClient.interceptors.response.use(
   },
 );
 
-apiClient.interceptors.request.use(
-    async (config) => {
-      const token = await authService.getToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    }
-  );
 export default apiClient;

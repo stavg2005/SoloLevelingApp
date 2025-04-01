@@ -1,6 +1,5 @@
 // src/screens/RegisterScreen.js
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -14,10 +13,10 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { userApi } from '../services/userApi';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useAuth} from '../context/AuthContext';
 
-const RegisterScreen = ({ navigation }) => {
+const RegisterScreen = ({navigation}) => {
   // State declarations
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -27,7 +26,9 @@ const RegisterScreen = ({ navigation }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [systemMessage, setSystemMessage] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
-  const [loading, setLoading] = useState(false);
+
+  // Get auth context
+  const {register, isLoading, error} = useAuth();
 
   // Show system message with animation
   const showSystemMessage = useCallback(
@@ -51,6 +52,7 @@ const RegisterScreen = ({ navigation }) => {
     },
     [fadeAnim],
   );
+
   // Handle registration
   const handleRegister = async () => {
     // Validate input
@@ -71,23 +73,27 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    setLoading(true);
-    showSystemMessage('Creating your Hunter account...');
-    
     try {
-      const response = await userApi.register({ username, email, password });
+      showSystemMessage('Creating your Hunter account...');
+      await register({username, email, password});
+
       showSystemMessage('Registration successful!');
-      
-      // Wait a moment before navigating to give user time to see the success message
+
+      // Navigate to login screen after successful registration
       setTimeout(() => {
         navigation.navigate('Login');
       }, 1500);
-    } catch (error) {
-      showSystemMessage(error.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      showSystemMessage(err.message || 'Registration failed. Please try again.');
     }
   };
+
+  // Show error from auth context if it exists
+  useEffect(() => {
+    if (error) {
+      showSystemMessage(error);
+    }
+  }, [error, showSystemMessage]);
 
   // Welcome message when screen loads
   useEffect(() => {
@@ -96,7 +102,7 @@ const RegisterScreen = ({ navigation }) => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [showSystemMessage]); // Empty dependency array to run only once
+  }, [showSystemMessage]);
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -148,6 +154,7 @@ const RegisterScreen = ({ navigation }) => {
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
 
@@ -161,6 +168,7 @@ const RegisterScreen = ({ navigation }) => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
 
@@ -174,10 +182,12 @@ const RegisterScreen = ({ navigation }) => {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
+                editable={!isLoading}
               />
               <TouchableOpacity
                 style={styles.eyeButton}
-                onPress={togglePasswordVisibility}>
+                onPress={togglePasswordVisibility}
+                disabled={isLoading}>
                 <View style={styles.eyeIconContainer}>
                   <Text style={styles.eyeIcon}>
                     {showPassword ? '👁️' : '👁️‍🗨️'}
@@ -196,10 +206,12 @@ const RegisterScreen = ({ navigation }) => {
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
+                editable={!isLoading}
               />
               <TouchableOpacity
                 style={styles.eyeButton}
-                onPress={toggleConfirmPasswordVisibility}>
+                onPress={toggleConfirmPasswordVisibility}
+                disabled={isLoading}>
                 <View style={styles.eyeIconContainer}>
                   <Text style={styles.eyeIcon}>
                     {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
@@ -210,11 +222,11 @@ const RegisterScreen = ({ navigation }) => {
 
             {/* Register Button */}
             <TouchableOpacity
-              style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+              style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
               onPress={handleRegister}
-              disabled={loading}
+              disabled={isLoading}
               activeOpacity={0.8}>
-              {loading ? (
+              {isLoading ? (
                 <ActivityIndicator color="#192130" size="small" />
               ) : (
                 <Text style={styles.registerButtonText}>REGISTER</Text>
@@ -224,7 +236,8 @@ const RegisterScreen = ({ navigation }) => {
             {/* Already have an account */}
             <TouchableOpacity
               style={styles.loginLink}
-              onPress={navigateToLogin}>
+              onPress={navigateToLogin}
+              disabled={isLoading}>
               <Text style={styles.loginLinkText}>
                 Already have an account? <Text style={styles.loginLinkTextBold}>Login</Text>
               </Text>
