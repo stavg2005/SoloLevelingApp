@@ -25,9 +25,9 @@ router.post('/complete', async (req, res) => {
       userId, dungeonId, experienceGained, statsGained, completionTime
     );
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: 'Dungeon completed successfully',
-      completionId
+      completionId,
     });
   } catch (error) {
     console.error('Error completing dungeon:', error);

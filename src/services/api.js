@@ -3,7 +3,7 @@ import axios from 'axios';
 import {authService} from './authService';
 
 // Base URL for all API calls
-const API_URL = 'http://10.0.0.9:3000/api'; // For Android emulator
+const API_URL = 'http://10.0.0.2:3000/api'; // For Android emulator
 
 // Create axios instance
 const apiClient = axios.create({

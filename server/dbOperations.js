@@ -162,7 +162,7 @@ const userOperations = {
   async getUserProfile(userId) {
     try {
       const [rows] = await db.query(
-        `SELECT * FROM user_profiles WHERE user_id = ?`,
+        'SELECT * FROM user_profiles WHERE user_id = ?',
         [userId],
       );
       return rows[0];
@@ -248,6 +248,148 @@ const userOperations = {
     } catch (error) {
       console.error('Error updating password:', error);
       throw error;
+    }
+  },
+  async  getUserData(userId) {
+    const conn = await db.getConnection();
+
+    try {
+      // Get basic user info
+      const [userRows] = await conn.query(
+        `SELECT user_id, username, email, display_name, avatar_url, date_created, last_login
+         FROM users WHERE user_id = ?`, 
+        [userId]
+      );
+
+      if (!userRows.length) {
+        throw new Error('User not found');
+      }
+
+      const userData = userRows[0];
+
+      // Get user profile
+      const [profileRows] = await conn.query(
+        `SELECT height, weight, fitness_level, fitness_goals, equipment_available, 
+                preferred_workout_time, preferred_workout_duration
+         FROM user_profiles WHERE user_id = ?`,
+        [userId]
+      );
+
+      if (profileRows.length) {
+        userData.profile = profileRows[0];
+      }
+
+      // Get hunter status and rank
+      const [statusRows] = await conn.query(
+        `SELECT uhs.current_level, uhs.total_experience, uhs.level_experience, 
+                uhs.experience_to_next_level, hr.rank_name, hr.rank_order, hr.rank_description, hr.rank_icon_url
+         FROM user_hunter_status uhs
+         JOIN hunter_ranks hr ON uhs.current_rank_id = hr.rank_id
+         WHERE uhs.user_id = ?`,
+        [userId]
+      );
+
+      if (statusRows.length) {
+        userData.hunterStatus = statusRows[0];
+      }
+
+      // Get user stats
+      const [statRows] = await conn.query(
+        `SELECT us.stat_value, s.stat_name, s.stat_description, s.stat_icon_url
+         FROM user_stats us
+         JOIN stats s ON us.stat_id = s.stat_id
+         WHERE us.user_id = ?`,
+        [userId]
+      );
+
+      if (statRows.length) {
+        userData.stats = {};
+        statRows.forEach(stat => {
+          userData.stats[stat.stat_name.toLowerCase()] = {
+            value: stat.stat_value,
+            description: stat.stat_description,
+            icon: stat.stat_icon_url
+          };
+        });
+      }
+
+      // Get active quests
+      const [questRows] = await conn.query(
+        `SELECT uq.user_quest_id, uq.start_date, q.quest_name, q.quest_description, 
+                q.difficulty_level, q.experience_reward, qc.category_name
+         FROM user_quests uq
+         JOIN quests q ON uq.quest_id = q.quest_id
+         JOIN quest_categories qc ON q.category_id = qc.category_id
+         WHERE uq.user_id = ? AND uq.is_active = TRUE AND uq.is_completed = FALSE
+         LIMIT 10`,
+        [userId]
+      );
+
+      if (questRows.length) {
+        userData.activeQuests = questRows;
+
+        // Get quest objectives for each active quest
+        for (const quest of userData.activeQuests) {
+          const [objectiveRows] = await conn.query(
+            `SELECT uqo.current_progress, uqo.is_completed, qo.objective_description, qo.required_amount
+             FROM user_quest_objectives uqo
+             JOIN quest_objectives qo ON uqo.objective_id = qo.objective_id
+             WHERE uqo.user_quest_id = ?`,
+            [quest.user_quest_id]
+          );
+
+          quest.objectives = objectiveRows;
+        }
+      }
+
+      // Get recent completed dungeons
+      const [dungeonRows] = await conn.query(
+        `SELECT udc.completion_date, udc.experience_gained, d.dungeon_name, d.difficulty_level,
+                dc.category_name
+         FROM user_dungeon_completions udc
+         JOIN dungeons d ON udc.dungeon_id = d.dungeon_id
+         JOIN dungeon_categories dc ON d.category_id = dc.category_id
+         WHERE udc.user_id = ?
+         ORDER BY udc.completion_date DESC
+         LIMIT 5`,
+        [userId]
+      );
+
+      if (dungeonRows.length) {
+        userData.recentDungeons = dungeonRows;
+      }
+
+      // Get user settings
+      const [settingsRows] = await conn.query(
+        `SELECT * FROM user_settings WHERE user_id = ?`,
+        [userId]
+      );
+
+      if (settingsRows.length) {
+        userData.settings = settingsRows[0];
+      }
+
+      // Get unlocked skills
+      const [skillRows] = await conn.query(
+        `SELECT us.skill_level, s.skill_name, s.skill_description, s.skill_icon_url,
+                sc.category_name
+         FROM user_skills us
+         JOIN skills s ON us.skill_id = s.skill_id
+         JOIN skill_categories sc ON s.category_id = sc.category_id
+         WHERE us.user_id = ?`,
+        [userId]
+      );
+
+      if (skillRows.length) {
+        userData.skills = skillRows;
+      }
+
+      return userData;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      throw error;
+    } finally {
+      conn.release();
     }
   },
 };
@@ -493,7 +635,7 @@ const questOperations = {
       // Get quest objectives for each quest
       for (const quest of quests) {
         const [objectives] = await db.query(
-          `SELECT * FROM quest_objectives WHERE quest_id = ?`,
+          'SELECT * FROM quest_objectives WHERE quest_id = ?',
           [quest.quest_id],
         );
         quest.objectives = objectives;
@@ -571,7 +713,7 @@ const questOperations = {
 
       // Get quest objectives
       const [objectives] = await conn.query(
-        `SELECT * FROM quest_objectives WHERE quest_id = ?`,
+        'SELECT * FROM quest_objectives WHERE quest_id = ?',
         [questId],
       );
 
@@ -743,6 +885,7 @@ const questOperations = {
       conn.release();
     }
   },
+
 };
 
 // Helper function to update a user's stat
@@ -853,6 +996,9 @@ async function checkForRankUp(connection, userId) {
     );
   }
 }
+  // Add this to userOperations in dbOperations.js
+
+
 
 module.exports = {
   userOperations,

@@ -99,6 +99,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+ // Refresh user data function
+const refreshUserData = async () => {
+  try {
+    setIsLoading(true);
+    
+    if (!user || !user.user_id) {
+      throw new Error('No authenticated user');
+    }
+    
+    const userData = await userApi.getUserData(user.user_id);
+    
+    // Update stored user data
+    await authService.setUser(userData);
+    setUser(userData);
+    
+    return userData;
+  } catch (err) {
+    console.error('Error refreshing user data:', err);
+    setError('Failed to refresh user data');
+    throw err;
+  } finally {
+    setIsLoading(false);
+  }
+};
   // Context value
   const value = {
     user,
@@ -109,6 +133,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

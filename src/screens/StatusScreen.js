@@ -10,14 +10,14 @@ import {
   Dimensions,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-
+import {useAuth} from '../context/AuthContext';
 const {width} = Dimensions.get('window');
 
 const StatusScreen = () => {
   // State declarations
   const [systemMessage, setSystemMessage] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
-
+  const {user, refreshUserData, isLoading} = useAuth();
   // Quests data
   const [quests, setQuests] = useState([
     {id: 1, name: 'Morning Cardio (15 minutes)', completed: false},
@@ -80,12 +80,13 @@ const StatusScreen = () => {
 
   // Show welcome message when screen loads
   useEffect(() => {
+    refreshUserData();
     const timer = setTimeout(() => {
       showSystemMessage('Welcome back, Hunter!');
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [showSystemMessage]);
+  }, [showSystemMessage, refreshUserData]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -101,7 +102,7 @@ const StatusScreen = () => {
           {/* Status Header */}
           <View style={styles.statusHeader}>
             <Text style={styles.statusHeaderTitle}>HUNTER STATUS</Text>
-            <Text style={styles.rankText}>E-RANK</Text>
+            <Text style={styles.rankText}>{user.rank_name}</Text>
           </View>
 
           {/* Character Info */}

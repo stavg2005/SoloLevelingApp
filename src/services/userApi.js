@@ -6,19 +6,22 @@ export const userApi = {
   getUserProfile(userId) {
     return apiClient.get(`/users/profile/${userId}`);
   },
-  
+
   // Login user
   login(credentials) {
     return apiClient.post('/users/login', credentials);
   },
-  
+
   // Register user
   register(userData) {
     return apiClient.post('/users/register', userData);
   },
-  
+
   // Update user profile
   updateProfile(userId, profileData) {
     return apiClient.put(`/users/profile/${userId}`, profileData);
-  }
+  },
+  getUserData(userId) {
+    return apiClient.get(`/users/data/${userId}`);
+  },
 };

@@ -56,9 +56,9 @@ router.post('/register', async (req, res) => {
     // Create user
     const userId = await userOperations.createUser(username, email, passwordHash);
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: 'User created successfully',
-      userId
+      userId,
     });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -91,6 +91,7 @@ router.post('/login', async (req, res) => {
     // Update last login time
     await userOperations.updateLastLogin(user.user_id);
 
+    const userData = await userOperations.getUserData(user.user_id);
     // Create JWT token
     const token = jwt.sign(
       { id: user.user_id, username: user.username },
@@ -101,17 +102,28 @@ router.post('/login', async (req, res) => {
     // Return user data and token
     res.json({
       token,
-      user: {
-        id: user.user_id,
-        username: user.username,
-        email: user.email,
-        // Add additional user data as needed
-      }
+      user: userData,
     });
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+// In server/routes/userRoutes.js - Add a new route for getting user data
+router.get('/data/:userId', auth, async (req, res) => {
+    try {
+      // Ensure the requested user ID matches the authenticated user's ID
+      if (req.params.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
 
+      const userId = req.params.userId;
+      const userData = await userOperations.getUserData(userId);
+
+      res.json(userData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
 module.exports = router;
