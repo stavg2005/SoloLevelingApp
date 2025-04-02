@@ -1,23 +1,26 @@
-// StatusScreen.js
-import React, {useState, useEffect, useCallback} from 'react';
+// StatusScreen.js - Adding daily dungeons
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Animated,
-  Dimensions,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useAuth} from '../context/AuthContext';
-const {width} = Dimensions.get('window');
 
 const StatusScreen = () => {
-  // State declarations
-  const [systemMessage, setSystemMessage] = useState(null);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const {user, refreshUserData, isLoading} = useAuth();
+  const {user} = useAuth();
+
+  // Stats data
+  const [stats] = useState([
+    {name: 'STRENGTH', value: 30},
+    {name: 'ENDURANCE', value: 40},
+    {name: 'AGILITY', value: 50},
+    {name: 'DISCIPLINE', value: 20},
+  ]);
+
   // Quests data
   const [quests, setQuests] = useState([
     {id: 1, name: 'Morning Cardio (15 minutes)', completed: false},
@@ -25,84 +28,30 @@ const StatusScreen = () => {
     {id: 3, name: 'Evening Stretching (10 minutes)', completed: false},
   ]);
 
-  // Stats data
-  const [stats, setStats] = useState([
-    {name: 'STRENGTH', value: 30},
-    {name: 'ENDURANCE', value: 40},
-    {name: 'AGILITY', value: 50},
-    {name: 'DISCIPLINE', value: 20},
-  ]);
-
-  // Memoize the showSystemMessage function with useCallback
-  const showSystemMessage = useCallback(
-    message => {
-      setSystemMessage(message);
-
-      // Animate in
-      Animated.sequence([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.delay(2000),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setSystemMessage(null));
-    },
-    [fadeAnim],
-  );
-
   // Function to toggle quest completion
-  const toggleQuestCompletion = useCallback(
-    id => {
-      setQuests(currentQuests =>
-        currentQuests.map(quest => {
-          if (quest.id === id) {
-            const newStatus = !quest.completed;
-
-            // Show system message when completing a quest
-            if (newStatus) {
-              showSystemMessage('Quest completed! Experience +50');
-            }
-
-            return {...quest, completed: newStatus};
-          }
-          return quest;
-        }),
-      );
-    },
-    [showSystemMessage],
-  );
-
-  // Show welcome message when screen loads
-  useEffect(() => {
-    refreshUserData();
-    const timer = setTimeout(() => {
-      showSystemMessage('Welcome back, Hunter!');
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [showSystemMessage, refreshUserData]);
+  const toggleQuestCompletion = useCallback(id => {
+    setQuests(currentQuests =>
+      currentQuests.map(quest => {
+        if (quest.id === id) {
+          return {...quest, completed: !quest.completed};
+        }
+        return quest;
+      }),
+    );
+  }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.container}>
-          {/* System Message */}
-          {systemMessage && (
-            <Animated.View style={[styles.systemMessage, {opacity: fadeAnim}]}>
-              <Text style={styles.systemMessageText}>{systemMessage}</Text>
-            </Animated.View>
-          )}
-
+    <View style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}>
           {/* Status Header */}
-          <View style={styles.statusHeader}>
-            <Text style={styles.statusHeaderTitle}>HUNTER STATUS</Text>
-            <Text style={styles.rankText}>{user.rank_name}</Text>
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>HUNTER STATUS</Text>
+            <Text style={styles.rankText}>
+              {user?.hunterStatus.rank_name + '-Rank' || 'E-Rank'}
+            </Text>
           </View>
 
           {/* Character Info */}
@@ -113,7 +62,7 @@ const StatusScreen = () => {
               </View>
             </View>
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>John Smith</Text>
+              <Text style={styles.userName}>{user?.username || 'null'}</Text>
               <Text style={styles.userLevel}>Level 3 Hunter</Text>
             </View>
           </View>
@@ -163,70 +112,42 @@ const StatusScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: '#161B22',
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
-  container: {
+  scrollContent: {
     padding: 20,
-    paddingBottom: 80, // Extra padding for navbar
+    paddingBottom: 80, // For bottom tab navigation
   },
-  systemMessage: {
-    position: 'absolute',
-    top: 10,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(31, 41, 55, 0.95)',
-    borderWidth: 2,
-    borderColor: '#38BDF8',
-    borderRadius: 4,
-    padding: 10,
-    alignItems: 'center',
-    zIndex: 100,
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  systemMessageText: {
-    color: '#38BDF8',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  statusHeader: {
+  headerContainer: {
     backgroundColor: '#1F2937',
     borderWidth: 2,
     borderColor: '#38BDF8',
     borderRadius: 8,
     padding: 15,
-    marginTop: 20,
+    marginVertical: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
   },
-  statusHeaderTitle: {
+  headerText: {
     color: '#38BDF8',
     fontSize: 24,
     fontWeight: 'bold',
-    textShadowColor: 'rgba(56, 189, 248, 0.5)',
-    textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 10,
   },
   rankText: {
     color: '#FFFFFF',
@@ -240,8 +161,7 @@ const styles = StyleSheet.create({
   characterInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    paddingVertical: 10,
+    marginBottom: 20,
   },
   avatarContainer: {
     width: 90,
@@ -258,11 +178,6 @@ const styles = StyleSheet.create({
     borderColor: '#38BDF8',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
   },
   avatarText: {
     fontSize: 24,
@@ -281,9 +196,6 @@ const styles = StyleSheet.create({
   userLevel: {
     fontSize: 18,
     color: '#38BDF8',
-    textShadowColor: 'rgba(56, 189, 248, 0.4)',
-    textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 8,
   },
   statsPanel: {
     backgroundColor: '#1F2937',
@@ -291,21 +203,13 @@ const styles = StyleSheet.create({
     borderColor: '#38BDF8',
     borderRadius: 8,
     padding: 20,
-    marginTop: 20,
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: 20,
   },
   panelTitle: {
     color: '#38BDF8',
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
-    textShadowColor: 'rgba(56, 189, 248, 0.4)',
-    textShadowOffset: {width: 0, height: 0},
-    textShadowRadius: 8,
     borderBottomWidth: 2,
     borderBottomColor: 'rgba(56, 189, 248, 0.3)',
     paddingBottom: 5,
@@ -347,12 +251,7 @@ const styles = StyleSheet.create({
     borderColor: '#38BDF8',
     borderRadius: 8,
     padding: 15,
-    marginTop: 20,
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: 20,
   },
   xpTitle: {
     fontSize: 16,
@@ -383,13 +282,7 @@ const styles = StyleSheet.create({
     borderColor: '#38BDF8',
     borderRadius: 8,
     padding: 20,
-    marginTop: 20,
     marginBottom: 30,
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
   },
   dungeonItem: {
     backgroundColor: '#192130',
@@ -425,46 +318,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderColor: '#38BDF8',
     transform: [{rotate: '-45deg'}],
-  },
-  navbar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    backgroundColor: '#1F2937',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  navItem: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navItemActive: {
-    backgroundColor: 'rgba(56, 189, 248, 0.2)',
-    borderWidth: 2,
-    borderColor: '#38BDF8',
-    shadowColor: '#38BDF8',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  navIcon: {
-    fontSize: 24,
-    color: '#FFFFFF',
-  },
-  navIconActive: {
-    color: '#38BDF8',
   },
 });
 

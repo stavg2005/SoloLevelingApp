@@ -250,15 +250,15 @@ const userOperations = {
       throw error;
     }
   },
-  async  getUserData(userId) {
+  async getUserData(userId) {
     const conn = await db.getConnection();
 
     try {
       // Get basic user info
       const [userRows] = await conn.query(
         `SELECT user_id, username, email, display_name, avatar_url, date_created, last_login
-         FROM users WHERE user_id = ?`, 
-        [userId]
+         FROM users WHERE user_id = ?`,
+        [userId],
       );
 
       if (!userRows.length) {
@@ -272,7 +272,7 @@ const userOperations = {
         `SELECT height, weight, fitness_level, fitness_goals, equipment_available, 
                 preferred_workout_time, preferred_workout_duration
          FROM user_profiles WHERE user_id = ?`,
-        [userId]
+        [userId],
       );
 
       if (profileRows.length) {
@@ -286,7 +286,7 @@ const userOperations = {
          FROM user_hunter_status uhs
          JOIN hunter_ranks hr ON uhs.current_rank_id = hr.rank_id
          WHERE uhs.user_id = ?`,
-        [userId]
+        [userId],
       );
 
       if (statusRows.length) {
@@ -299,7 +299,7 @@ const userOperations = {
          FROM user_stats us
          JOIN stats s ON us.stat_id = s.stat_id
          WHERE us.user_id = ?`,
-        [userId]
+        [userId],
       );
 
       if (statRows.length) {
@@ -308,7 +308,7 @@ const userOperations = {
           userData.stats[stat.stat_name.toLowerCase()] = {
             value: stat.stat_value,
             description: stat.stat_description,
-            icon: stat.stat_icon_url
+            icon: stat.stat_icon_url,
           };
         });
       }
@@ -322,7 +322,7 @@ const userOperations = {
          JOIN quest_categories qc ON q.category_id = qc.category_id
          WHERE uq.user_id = ? AND uq.is_active = TRUE AND uq.is_completed = FALSE
          LIMIT 10`,
-        [userId]
+        [userId],
       );
 
       if (questRows.length) {
@@ -335,7 +335,7 @@ const userOperations = {
              FROM user_quest_objectives uqo
              JOIN quest_objectives qo ON uqo.objective_id = qo.objective_id
              WHERE uqo.user_quest_id = ?`,
-            [quest.user_quest_id]
+            [quest.user_quest_id],
           );
 
           quest.objectives = objectiveRows;
@@ -352,7 +352,7 @@ const userOperations = {
          WHERE udc.user_id = ?
          ORDER BY udc.completion_date DESC
          LIMIT 5`,
-        [userId]
+        [userId],
       );
 
       if (dungeonRows.length) {
@@ -362,7 +362,7 @@ const userOperations = {
       // Get user settings
       const [settingsRows] = await conn.query(
         `SELECT * FROM user_settings WHERE user_id = ?`,
-        [userId]
+        [userId],
       );
 
       if (settingsRows.length) {
@@ -377,7 +377,7 @@ const userOperations = {
          JOIN skills s ON us.skill_id = s.skill_id
          JOIN skill_categories sc ON s.category_id = sc.category_id
          WHERE us.user_id = ?`,
-        [userId]
+        [userId],
       );
 
       if (skillRows.length) {
@@ -885,7 +885,6 @@ const questOperations = {
       conn.release();
     }
   },
-
 };
 
 // Helper function to update a user's stat
@@ -996,9 +995,7 @@ async function checkForRankUp(connection, userId) {
     );
   }
 }
-  // Add this to userOperations in dbOperations.js
-
-
+// Add this to userOperations in dbOperations.js
 
 module.exports = {
   userOperations,
